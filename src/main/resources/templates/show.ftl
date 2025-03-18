@@ -14,12 +14,18 @@
                     </#if>
                     
                     <#if Session?? && Session.token??>
-                        <form action="/watchlist" method="POST" class="d-inline-block ms-2">
-                            <input type="hidden" name="showId" value="${show.imdbID}">
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-plus"></i> Add to Watchlist
+                        <#if isInWatchlist?? && isInWatchlist>
+                            <button class="btn btn-secondary ms-2" disabled>
+                                <i class="fas fa-check"></i> Added to Watchlist
                             </button>
-                        </form>
+                        <#else>
+                            <form action="/watchlist" method="POST" class="d-inline-block ms-2">
+                                <input type="hidden" name="showId" value="${show.imdbID}">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-plus"></i> Add to Watchlist
+                                </button>
+                            </form>
+                        </#if>
                     </#if>
                 </div>
                 <p class="lead">${show.plot}</p>
@@ -188,6 +194,17 @@
 
     .btn-danger i {
         margin-right: 5px;
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        cursor: not-allowed;
+    }
+
+    .btn-secondary i {
+        margin-right: 5px;
+        color: #28a745;
     }
 
      /* Cast Section Styles */

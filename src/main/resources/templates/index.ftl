@@ -5,7 +5,7 @@
         <div class="row justify-content-center">
             <div class="col-md-8 text-center welcome-text">
                 <#if Session?? && Session.username??>
-                    <h1 class="mb-4">Welcome ${Session.username}</h1>
+                    <h1 class="mb-4">Welcome ${Session.username} !</h1>
                 <#else>
                     <h1 class="mb-4">Welcome to TV Show Tracker</h1>
                 </#if>

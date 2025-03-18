@@ -136,6 +136,16 @@ public class App {
                     throw new Exception("Password must be at least 8 characters long");
                 }
 
+                // Check for number in password
+                if (!password.matches(".*\\d.*")) {
+                    throw new Exception("Password must contain at least one number");
+                }
+
+                // Check for special character in password
+                if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) {
+                    throw new Exception("Password must contain at least one special character");
+                }
+
                 String token = authService.signUp(email, password, username);
                 req.session(true).attribute("token", token);
                 req.session().attribute("username", username);
@@ -207,6 +217,13 @@ public class App {
                 // Get user info for the template
                 Map<String, Object> userInfo = authService.getUserInfo(token);
                 model.put("user", userInfo);
+                
+                // Check if show is in user's watchlist
+                if (userInfo != null) {
+                    int userId = (int) userInfo.get("id");
+                    boolean isInWatchlist = watchlistService.isShowInWatchlist(userId, showId);
+                    model.put("isInWatchlist", isInWatchlist);
+                }
                 
                 // Get user's rating if it exists
                 int userId = (int) userInfo.get("id");

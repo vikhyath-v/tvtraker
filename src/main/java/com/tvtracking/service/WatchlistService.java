@@ -1,6 +1,11 @@
 package com.tvtracking.service;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,12 +13,33 @@ import java.util.Map;
 import com.tvtracking.model.Show;
 
 public class WatchlistService {
+    private static final String DB_URL = "jdbc:sqlite:tv_tracker.db";
+
     private final DatabaseService db;
     private final OmdbService omdbService;
 
     public WatchlistService() {
         this.db = DatabaseService.getInstance();
         this.omdbService = new OmdbService();
+        initializeDatabase();
+    }
+
+    private void initializeDatabase() {
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             Statement stmt = conn.createStatement()) {
+            
+            // Create watchlist table if it doesn't exist
+            String sql = "CREATE TABLE IF NOT EXISTS watchlist (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "user_id INTEGER NOT NULL," +
+                        "show_id TEXT NOT NULL," +
+                        "UNIQUE(user_id, show_id)" +
+                        ")";
+            stmt.execute(sql);
+            
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to initialize database: " + e.getMessage());
+        }
     }
 
     public void addToWatchlist(int userId, String showId) throws Exception {
@@ -82,6 +108,27 @@ public class WatchlistService {
             return db.isInWatchlist(userId, showId);
         } catch (SQLException e) {
             throw new Exception("Failed to check watchlist: " + e.getMessage());
+        }
+    }
+
+    public boolean isShowInWatchlist(int userId, String showId) {
+        String sql = "SELECT COUNT(*) as count FROM watchlist WHERE user_id = ? AND show_id = ?";
+        
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userId);
+            pstmt.setString(2, showId);
+            
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("count") > 0;
+            }
+            
+            return false;
+            
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to check watchlist: " + e.getMessage());
         }
     }
 } 
