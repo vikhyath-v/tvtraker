@@ -8,15 +8,18 @@ import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
 import com.tvtracking.config.Config;
 import com.tvtracking.model.Discussion;
 import com.tvtracking.model.Show;
+import com.tvtracking.model.UserRating;
 import com.tvtracking.service.AuthService;
 import com.tvtracking.service.DiscussionService;
 import com.tvtracking.service.OmdbService;
+import com.tvtracking.service.UserRatingService;
 import com.tvtracking.service.WatchlistService;
 
 import freemarker.template.Configuration;
@@ -36,6 +39,7 @@ public class App {
     private static final WatchlistService watchlistService = new WatchlistService();
     private static final DiscussionService discussionService = new DiscussionService();
     private static final AuthService authService = new AuthService();
+    private static final UserRatingService userRatingService = new UserRatingService();
     private static final Configuration freemarkerConfig = new Configuration(Configuration.VERSION_2_3_32);
 
     public static void main(String[] args) {
@@ -47,6 +51,7 @@ public class App {
         OmdbService omdbService = new OmdbService();
         DiscussionService discussionService = new DiscussionService();
         WatchlistService watchlistService = new WatchlistService();
+        UserRatingService userRatingService = new UserRatingService();
         
         // Configure FreeMarker
         try {
@@ -203,6 +208,17 @@ public class App {
                 Map<String, Object> userInfo = authService.getUserInfo(token);
                 model.put("user", userInfo);
                 
+                // Get user's rating if it exists
+                int userId = (int) userInfo.get("id");
+                UserRating userRating = userRatingService.getUserRating(userId, showId);
+                model.put("userRating", userRating);
+                
+                // Get average rating and all ratings
+                double averageRating = userRatingService.getAverageRating(showId);
+                List<UserRating> allRatings = userRatingService.getShowRatings(showId);
+                model.put("averageRating", averageRating);
+                model.put("allRatings", allRatings);
+                
                 // Get discussions
                 model.put("discussions", discussionService.getDiscussionsForShow(showId));
                 return renderTemplate("show.ftl", model);
@@ -333,6 +349,33 @@ public class App {
             
             res.redirect("/show/" + showId);
             return null;
+        });
+
+        // Add rating route
+        post("/show/:id/rate", (req, res) -> {
+            String showId = req.params(":id");
+            String token = req.session().attribute("token");
+            
+            try {
+                Map<String, Object> userInfo = authService.getUserInfo(token);
+                int userId = (int) userInfo.get("id");
+                String username = (String) userInfo.get("username");
+                int rating = Integer.parseInt(req.queryParams("rating"));
+                String comment = req.queryParams("comment");
+                
+                UserRating userRating = new UserRating(userId, username, showId, rating, comment);
+                userRatingService.addOrUpdateRating(userRating);
+                
+                res.redirect("/show/" + showId);
+                return null;
+            } catch (Exception e) {
+                Map<String, Object> model = new HashMap<>();
+                Map<String, Object> sessionData = new HashMap<>();
+                sessionData.put("token", token);
+                model.put("Session", sessionData);
+                model.put("error", "Failed to add rating: " + e.getMessage());
+                return renderTemplate("error.ftl", model);
+            }
         });
 
         get("/signout", (req, res) -> {

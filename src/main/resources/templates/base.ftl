@@ -595,10 +595,7 @@
         <#nested>
     </div>
 
-    <!-- Theme toggle button -->
-    <button class="theme-toggle">
-        <span class="theme-icon">🌙</span>
-    </button>
+   
 
     <!-- Footer -->
     <footer class="footer">

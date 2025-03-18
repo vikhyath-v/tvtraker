@@ -28,7 +28,7 @@ A simple web application to search and track information about TV shows using th
    ```bash
    java -jar target/tv-tracking-app-1.0-SNAPSHOT.jar
    ```
-6. Open your browser and navigate to `http://localhost:4567`
+6. Open your browser and navigate to `http://localhost:4569`
 
 ## Usage
 
