@@ -3,16 +3,16 @@ services:
     name: tv-tracking-app
     runtime: java
     plan: free
-    buildCommand: mvn clean package
-    startCommand: java -jar target/tvtracking-1.0-SNAPSHOT.jar
     envVars:
       - key: JAVA_VERSION
         value: 17
       - key: PORT
         value: 4569
+    buildCommand: ./mvnw clean package
+    startCommand: java -jar target/tvtracking-1.0-SNAPSHOT.jar
     healthCheckPath: /
     autoDeploy: true
     disk:
       name: tmp
       mountPath: /tmp
-      sizeGB: 1 
+      sizeGB: 1
